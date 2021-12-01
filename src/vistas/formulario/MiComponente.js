@@ -1,14 +1,12 @@
 import React, {Fragment, useEffect, useState} from 'react';
 import axios from 'axios';
-import MaterialDatatable from 'material-datatable';
 import { useMediaQuery } from 'react-responsive';
-import { Container, Grid, Button, Typography, TextField, Select, MenuItem } from '@material-ui/core';
 import Swal from 'sweetalert2'
 
 const MiComponente = () => {
     const [patente, setPatente] = useState("")
     const [anio, setAnio] = useState("")
-    const [marca, setMarca] = useState("")
+    const [marca, setMarca] = useState([])
     const [autos, setAutos] = useState([])
 
 
@@ -37,9 +35,22 @@ const MiComponente = () => {
     const json = ""
     async function getAutos(){
         try{
-            const response = await axios.get('localhost:4000/api/autos')
+            const response = await axios.get('http://localhost:4000/api/autos')
             if (response.status == 200){
-                setAutos(response.data.auto) // Se setea el response json en la variable auto
+                setAutos(response.data.autosconmarca) // Se setea el response json en la variable auto
+            }
+        } catch (error){
+            console.error(error)
+        }
+    }
+    useEffect(() => {
+        getMarca()
+    },[])
+    async function getMarca(){
+        try{
+            const response = await axios.get('http://localhost:4000/api/marca')
+            if (response.status == 200){
+                setMarca(response.data.marca) // Se setea el response json en la variable auto
             }
         } catch (error){
             console.error(error)
@@ -48,7 +59,7 @@ const MiComponente = () => {
 
 
     function guardarAuto(){
-        axios.post('localhost:4000/api/autos', {
+        axios.post('http://localhost:4000/api/autos', {
             patente: patente,
             anio: anio,
             marca: marca
@@ -131,52 +142,66 @@ const MiComponente = () => {
     };
 
     return (
-        <Container maxWidth="md">
-        <Grid container spacing={2}>
-            <Grid item xs={12} md={12}>
-                <Typography variant="h6">
-                    Registro de Autos
-                </Typography>
-            </Grid>
-            <Grid item xs={12} md={6} fullWidth>
-                <TextField id="patente" label="Patente" variant="outlined" onChange={handleInputChangePatente} value={patente} fullWidth />
-            </Grid>
-            <Grid item xs={12} md={6}>
-                <TextField id="anio" label="Año" variant="outlined" onChange={handleInputChangeAnio} value={anio} fullWidth />
-            </Grid>
-                <Grid item xs={12} md={6}>
-                    <Select
-                        value={marca}
-                        onChange={cambioSelectMarca}
-                    >
-                        <MenuItem value="">
-                            <em>None</em>
-                        </MenuItem>
-                        <MenuItem value={10}>Ten</MenuItem>
-                        <MenuItem value={20}>Twenty</MenuItem>
-                        <MenuItem value={30}>Thirty</MenuItem>
-                    </Select>
-                </Grid>
-            <Grid item xs={12} md={2}>
-                <Button variant="contained" color="primary" onClick={guardarAuto} fullWidth>Guardar</Button>
+        <body>
+            <div></div>
+            <div className="container border">
+                <h3>Registro de autos</h3>
+                <br></br>
+                <br></br>
+                <div className="mb-3 col-3">
+                    <label for="patente" className="form-label">Patente</label>
+                    <input type="text" className="form-control" id="patente" ></input>
+                </div>
+                <div className="mb-3 col-3">
+                    <label for="anio" className="form-label">Año</label>
+                    <input type="text" className="form-control" id="anio"></input>
+                </div>
+                <div className="mb-3 col-3">
+                    <label for="marca" className="form-label">Marca</label>
+                    <select class="form-select" aria-label="Default select example" id="marca">
+                        <option selected>Seleccione una marca...</option>
+                        {
+                           marca?.map((marc, index)=>(
+                                <option key={index} value={marc._id}>{marc.descripcion}</option>
+                            ))
+                         }
+                    </select>
+                </div>
+                <div className="mb-3">
+                    <button type="button" class="btn btn-primary">Guardar</button>
+                </div>
 
-            </Grid>
-           
-        </Grid>
+                <br></br>
+                <br></br>
+                <br></br>
+                <div className="mb-3 col-3">
+                <table class="table table-success table-striped">
+                    <thead>
+                        <tr>
+                           
+                            <th>MARCA</th>
+                            <th>PATENTE</th>
+                            <th >AÑO</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {
+                           autos?.map((autito, index)=>(
+                                <tr key={index}>
+                                    <td >{autito.marca[0].descripcion}</td>
+                                    <td >{autito.patente}</td>
+                                    <td >{autito.anio}</td>
+                                </tr>
+                            ))
+                         }
+                        
+                        
+                    </tbody>
+                </table>
+                </div>
+            </div>
 
-  
-        <Grid item xs={12} md={12} className="tabla">
-        <MaterialDatatable
-            title={"Lista de autos"}
-            data={autos}
-            columns={columns}
-            options={options}
-        />
-        
-    </Grid>
-  
-
-    </Container>
+        </body>
     )
 }
 export default MiComponente
